@@ -1,0 +1,780 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>UoHyd Alumni Scraper</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        color: #2c3e50;
+      }
+      
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        overflow: hidden;
+      }
+      
+      header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 50px 40px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+      }
+      
+      header h1 { 
+        font-size: 2.8em; 
+        margin-bottom: 10px; 
+        font-weight: 700;
+        letter-spacing: -0.5px;
+      }
+      
+      header p { 
+        font-size: 1.15em; 
+        opacity: 0.95;
+        font-weight: 300;
+      }
+      
+      .controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto auto auto;
+        gap: 12px;
+        padding: 25px;
+        background: #f8fafb;
+        border-bottom: 1px solid #e8ecf1;
+        align-items: center;
+      }
+      
+      input, select {
+        padding: 12px 16px;
+        border: 2px solid #e8ecf1;
+        border-radius: 8px;
+        font-size: 0.95em;
+        background: white;
+        transition: all 0.3s;
+        font-family: inherit;
+      }
+      
+      input:focus, select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        background: #f8fbff;
+      }
+      
+      input::placeholder {
+        color: #b0b8c1;
+      }
+      
+      button {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.95em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      }
+      
+      .btn-primary:hover { 
+        transform: translateY(-2px); 
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); 
+      }
+      
+      .btn-primary:active { 
+        transform: translateY(0); 
+      }
+      
+      .btn-secondary {
+        background: white;
+        color: #667eea;
+        border: 2px solid #667eea;
+      }
+      
+      .btn-secondary:hover { 
+        background: #f0f3ff;
+        transform: translateY(-2px);
+      }
+      
+      .btn-stop {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+      }
+      
+      .btn-stop:hover {
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+      }
+      
+      #status {
+        font-weight: 700;
+        padding: 10px 16px;
+        border-radius: 8px;
+        background: #e3f2fd;
+        color: #1976d2;
+        font-size: 0.9em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      #status.running { 
+        background: #fff3e0; 
+        color: #e65100;
+        animation: pulse 2s infinite;
+      }
+      
+      #status.done { 
+        background: #e8f5e9; 
+        color: #2e7d32; 
+      }
+      
+      #status.error { 
+        background: #ffebee; 
+        color: #c62828; 
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+      }
+
+      .scrape-output {
+        padding: 25px;
+        background: #f8fafb;
+        border-bottom: 1px solid #e8ecf1;
+      }
+      
+      .scrape-output label {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: #2c3e50;
+        font-size: 0.95em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      #scrapeOutput {
+        width: 100%;
+        height: 200px;
+        padding: 16px;
+        border: 2px solid #e8ecf1;
+        border-radius: 8px;
+        background: white;
+        font-family: 'Monaco', 'Courier New', monospace;
+        font-size: 0.85em;
+        overflow-y: auto;
+        line-height: 1.5;
+        color: #2c3e50;
+        resize: vertical;
+      }
+      
+      #scrapeOutput::-webkit-scrollbar {
+        width: 8px;
+      }
+      
+      #scrapeOutput::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      
+      #scrapeOutput::-webkit-scrollbar-thumb {
+        background: #667eea;
+        border-radius: 4px;
+      }
+      
+      #scrapeOutput::-webkit-scrollbar-thumb:hover {
+        background: #5568d3;
+      }
+
+      .results {
+        padding: 40px;
+      }
+      
+      .results h2 {
+        margin-bottom: 30px;
+        color: #2c3e50;
+        font-size: 1.8em;
+        font-weight: 700;
+      }
+      
+      .summary {
+        margin-bottom: 25px;
+        padding: 18px 24px;
+        background: linear-gradient(135deg, #f0f3ff 0%, #f5f8ff 100%);
+        border-left: 5px solid #667eea;
+        border-radius: 8px;
+        font-weight: 600;
+        color: #667eea;
+        font-size: 1em;
+      }
+      
+      .filters-section {
+        margin-bottom: 30px;
+      }
+      
+      .filters-header {
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 12px;
+        font-size: 0.95em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .filters {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+      }
+      
+      .filters input, .filters select {
+        width: 100%;
+      }
+      
+      .filter-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      
+      .filter-row button {
+        flex: 1;
+        min-width: 100px;
+      }
+      
+      .results-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      
+      .card {
+        padding: 20px;
+        background: white;
+        border: 2px solid #e8ecf1;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+      }
+      
+      .card:hover { 
+        border-color: #667eea;
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+        transform: translateY(-2px);
+      }
+      
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 12px;
+      }
+      
+      .card h3 {
+        margin: 0;
+        color: #667eea;
+        font-size: 1.1em;
+        font-weight: 700;
+      }
+      
+      .card-year {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.85em;
+        font-weight: 600;
+      }
+      
+      .card-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+      }
+      
+      .card-field {
+        padding: 10px;
+        background: #f8fafb;
+        border-radius: 6px;
+        border-left: 3px solid #667eea;
+      }
+      
+      .card-field-label {
+        font-weight: 700;
+        color: #667eea;
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 4px;
+      }
+      
+      .card-field-value {
+        color: #2c3e50;
+        font-size: 0.95em;
+        word-break: break-word;
+      }
+
+      .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 1px solid #e8ecf1;
+      }
+      
+      .pagination button {
+        padding: 10px 16px;
+        border: 2px solid #e8ecf1;
+        background: white;
+        color: #667eea;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 600;
+      }
+      
+      .pagination button:hover:not(:disabled) {
+        border-color: #667eea;
+        background: #f0f3ff;
+      }
+      
+      .pagination button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      
+      .pagination button.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: #667eea;
+      }
+      
+      .pagination-info {
+        color: #667eea;
+        font-weight: 600;
+        min-width: 150px;
+        text-align: center;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+      }
+      
+      .empty-state p {
+        font-size: 1.1em;
+        margin-bottom: 10px;
+      }
+
+      @media (max-width: 1024px) {
+        .controls {
+          grid-template-columns: 1fr;
+        }
+        
+        .filters {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 768px) {
+        header h1 { font-size: 2em; }
+        header p { font-size: 1em; }
+        
+        .controls {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        
+        .results {
+          padding: 20px;
+        }
+        
+        .filters {
+          grid-template-columns: 1fr;
+        }
+        
+        .card-meta {
+          grid-template-columns: 1fr;
+        }
+        
+        .pagination {
+          flex-wrap: wrap;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🎓 UoH Alumni Scraper</h1>
+        <p>Extract and analyze alumni data from the University of Hyderabad</p>
+      </header>
+
+      <section class="controls">
+        <input id="email" placeholder="Email (optional)" type="email">
+        <input id="password" placeholder="Password (optional)" type="password">
+        <button id="scrapeBtn" class="btn-primary">Start Scrape</button>
+        <button id="stopBtn" class="btn-stop" style="display:none;">Stop Scrape</button>
+        <span id="status">Idle</span>
+      </section>
+
+      <section class="scrape-output">
+        <label>Scrape Log</label>
+        <pre id="scrapeOutput">Ready to scrape...</pre>
+      </section>
+
+      <section class="results">
+        <h2>Results</h2>
+        <div class="summary">
+          <span id="summary">0 profiles</span>
+        </div>
+        
+        <div class="filters-section">
+          <div class="filters-header">Filters & Search</div>
+          <div class="filters">
+            <input id="search" placeholder="Search by name, degree, or company...">
+            <select id="filterDegree">
+              <option value="">All degrees</option>
+            </select>
+            <select id="filterYear">
+              <option value="">All years</option>
+            </select>
+            <select id="filterLocation">
+              <option value="">All locations</option>
+            </select>
+          </div>
+          <div class="filter-row" style="margin-top: 12px;">
+            <button id="clearFilters" class="btn-secondary">Clear Filters</button>
+            <button id="exportCsv" class="btn-secondary">Export CSV</button>
+          </div>
+        </div>
+
+        <div id="list" class="results-grid"></div>
+        
+        <div class="pagination">
+          <button id="prevBtn" class="btn-secondary">← Previous</button>
+          <span class="pagination-info">
+            <span id="pageInfo">Page 1</span>
+          </span>
+          <button id="nextBtn" class="btn-secondary">Next →</button>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const ITEMS_PER_PAGE = 40;
+      let currentPage = 1;
+      let scrapingInProgress = false;
+      let scrapeSource = null;
+      let ALL_RESULTS = [];
+      let FILTERED_RESULTS = [];
+
+      async function fetchResults() {
+        const res = await fetch('/api/results');
+        const json = await res.json();
+        return json.results || [];
+      }
+
+      function render(results) {
+        const list = document.getElementById('list');
+        list.innerHTML = '';
+        
+        if (!results.length) {
+          list.innerHTML = '<div class="empty-state"><p>No results found. Try adjusting your filters or run a scrape.</p></div>';
+          updatePagination(results);
+          return;
+        }
+
+        // Pagination logic
+        const totalPages = Math.ceil(results.length / ITEMS_PER_PAGE);
+        if (currentPage > totalPages && totalPages > 0) {
+          currentPage = totalPages;
+        }
+
+        const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+        const endIdx = startIdx + ITEMS_PER_PAGE;
+        const pageResults = results.slice(startIdx, endIdx);
+
+        // Render cards
+        for (const r of pageResults) {
+          const card = document.createElement('div');
+          card.className = 'card';
+          
+          card.innerHTML = `
+            <div class="card-header">
+              <h3>${r.name || 'Unknown'}</h3>
+              <div class="card-year">${r.gradYear || 'N/A'}</div>
+            </div>
+            <div class="card-meta">
+              <div class="card-field">
+                <div class="card-field-label">Degree</div>
+                <div class="card-field-value">${r.degree || 'N/A'}</div>
+              </div>
+              <div class="card-field">
+                <div class="card-field-label">Company</div>
+                <div class="card-field-value">${r.company || 'N/A'}</div>
+              </div>
+              <div class="card-field">
+                <div class="card-field-label">Location</div>
+                <div class="card-field-value">${r.location || 'N/A'}</div>
+              </div>
+            </div>
+          `;
+          
+          list.appendChild(card);
+        }
+
+        updatePagination(results);
+        document.getElementById('summary').textContent = `${results.length} profiles`;
+      }
+
+      function updatePagination(results) {
+        const totalPages = Math.ceil(results.length / ITEMS_PER_PAGE) || 1;
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const pageInfo = document.getElementById('pageInfo');
+
+        prevBtn.disabled = currentPage <= 1;
+        nextBtn.disabled = currentPage >= totalPages;
+
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages} (${results.length} total)`;
+      }
+
+      async function loadAndPopulate() {
+        const results = await fetchResults();
+        
+        // Deduplicate on frontend
+        const seenKeys = new Set();
+        const deduped = [];
+        for (const r of results) {
+          const key = `${r.name}|${r.degree}|${r.gradYear}`;
+          if (!seenKeys.has(key)) {
+            seenKeys.add(key);
+            deduped.push(r);
+          }
+        }
+        
+        ALL_RESULTS = deduped;
+        populateFilters(deduped);
+        applyFilters();
+      }
+
+      function populateFilters(results) {
+        // Degrees
+        const degreeSet = new Set();
+        const yearSet = new Set();
+        const locationSet = new Set();
+        
+        for (const r of results) {
+          if (r.degree) degreeSet.add(r.degree);
+          if (r.gradYear) yearSet.add(r.gradYear);
+          if (r.location) locationSet.add(r.location);
+        }
+
+        // Update degree filter
+        const fd = document.getElementById('filterDegree');
+        fd.querySelectorAll('option:not(:first-child)').forEach(n => n.remove());
+        for (const d of Array.from(degreeSet).sort()) {
+          const o = document.createElement('option');
+          o.value = d;
+          o.textContent = d;
+          fd.appendChild(o);
+        }
+
+        // Update year filter
+        const fy = document.getElementById('filterYear');
+        fy.querySelectorAll('option:not(:first-child)').forEach(n => n.remove());
+        for (const y of Array.from(yearSet).sort((a, b) => parseInt(b) - parseInt(a))) {
+          const o = document.createElement('option');
+          o.value = y;
+          o.textContent = `Class of ${y}`;
+          fy.appendChild(o);
+        }
+
+        // Update location filter
+        const fl = document.getElementById('filterLocation');
+        fl.querySelectorAll('option:not(:first-child)').forEach(n => n.remove());
+        for (const loc of Array.from(locationSet).sort()) {
+          const o = document.createElement('option');
+          o.value = loc;
+          o.textContent = loc;
+          fl.appendChild(o);
+        }
+      }
+
+      function applyFilters() {
+        currentPage = 1;
+        const q = (document.getElementById('search').value || '').toLowerCase().trim();
+        const fd = document.getElementById('filterDegree').value;
+        const fy = document.getElementById('filterYear').value;
+        const fl = document.getElementById('filterLocation').value;
+        
+        FILTERED_RESULTS = [];
+        
+        for (const r of ALL_RESULTS) {
+          if (fd && r.degree !== fd) continue;
+          if (fy && r.gradYear !== fy) continue;
+          if (fl && r.location !== fl) continue;
+          
+          if (!q) {
+            FILTERED_RESULTS.push(r);
+          } else {
+            const hay = ((r.name || '') + ' ' + (r.degree || '') + ' ' + (r.company || '') + ' ' + (r.location || '')).toLowerCase();
+            if (hay.includes(q)) FILTERED_RESULTS.push(r);
+          }
+        }
+        
+        render(FILTERED_RESULTS);
+      }
+
+      function exportCsv() {
+        const rows = [['name', 'degree', 'company', 'gradYear', 'location']];
+        for (const r of FILTERED_RESULTS) {
+          rows.push([r.name || '', r.degree || '', r.company || '', r.gradYear || '', r.location || '']);
+        }
+        const csv = rows.map(r => r.map(cell => '"' + String(cell).replace(/"/g, '""') + '"').join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'uoh_alumni.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      document.getElementById('scrapeBtn').addEventListener('click', async () => {
+        const status = document.getElementById('status');
+        const scrapeBtn = document.getElementById('scrapeBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+        
+        if (scrapingInProgress) return;
+        
+        scrapingInProgress = true;
+        scrapeBtn.style.display = 'none';
+        stopBtn.style.display = 'inline-block';
+        status.textContent = 'Running...';
+        status.className = 'running';
+        
+        // Start live result updates every 2 seconds
+        const liveUpdateInterval = setInterval(async () => {
+          if (!scrapingInProgress) {
+            clearInterval(liveUpdateInterval);
+            return;
+          }
+          await loadAndPopulate();
+        }, 2000);
+        
+        try {
+          const outEl = document.getElementById('scrapeOutput');
+          outEl.textContent = 'Starting scrape...\n';
+          
+          const body = {};
+          if (email) body.LOGIN_EMAIL = email;
+          if (password) body.LOGIN_PASSWORD = password;
+
+          const res = await fetch('/api/scrape', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(body) 
+          });
+          const json = await res.json();
+          
+          status.textContent = json.success ? 'Done' : 'Error';
+          status.className = json.success ? 'done' : 'error';
+          if (json.output) {
+            outEl.textContent += json.output;
+            outEl.scrollTop = outEl.scrollHeight;
+          }
+        } catch (e) {
+          status.textContent = 'Error';
+          status.className = 'error';
+          document.getElementById('scrapeOutput').textContent += '\nError: ' + e.message;
+        } finally {
+          scrapingInProgress = false;
+          clearInterval(liveUpdateInterval);
+          scrapeBtn.style.display = 'inline-block';
+          stopBtn.style.display = 'none';
+          await loadAndPopulate();
+        }
+      });
+
+      document.getElementById('stopBtn').addEventListener('click', async () => {
+        scrapingInProgress = false;
+        const status = document.getElementById('status');
+        const scrapeBtn = document.getElementById('scrapeBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        
+        status.textContent = 'Stopped';
+        status.className = 'error';
+        scrapeBtn.style.display = 'inline-block';
+        stopBtn.style.display = 'none';
+        
+        // Try to stop the scraping on server side
+        try {
+          await fetch('/api/stop', { method: 'POST' });
+        } catch (e) {}
+        
+        await loadAndPopulate();
+      });
+
+      document.getElementById('prevBtn').addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          render(FILTERED_RESULTS);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+
+      document.getElementById('nextBtn').addEventListener('click', () => {
+        const totalPages = Math.ceil(FILTERED_RESULTS.length / ITEMS_PER_PAGE);
+        if (currentPage < totalPages) {
+          currentPage++;
+          render(FILTERED_RESULTS);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+
+      document.getElementById('clearFilters').addEventListener('click', () => {
+        document.getElementById('search').value = '';
+        document.getElementById('filterDegree').value = '';
+        document.getElementById('filterYear').value = '';
+        document.getElementById('filterLocation').value = '';
+        applyFilters();
+      });
+
+      window.addEventListener('load', async () => {
+        await loadAndPopulate();
+        document.getElementById('search').addEventListener('input', applyFilters);
+        document.getElementById('filterDegree').addEventListener('change', applyFilters);
+        document.getElementById('filterYear').addEventListener('change', applyFilters);
+        document.getElementById('filterLocation').addEventListener('change', applyFilters);
+        document.getElementById('exportCsv').addEventListener('click', exportCsv);
+      });
+    </script>
+  </body>
+</html>
