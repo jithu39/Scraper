@@ -36,8 +36,8 @@ A powerful web scraping tool for extracting alumni data from the University of H
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/uohyd-alumni-scraper.git
-cd uohyd-alumni-scraper
+git clone https://github.com/jithu39/Scraper.git
+cd Scraper
 
 # Install dependencies
 npm install
@@ -254,17 +254,7 @@ npm start
 - Automatic retry on network failures
 - Graceful page recovery
 - Efficient CSV streaming
-
-## 🤝 Contributing
-
-Contributions welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
+  
 ## 📝 License
 
 MIT License © 2026 - See LICENSE file for details
